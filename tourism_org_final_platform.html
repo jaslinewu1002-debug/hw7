@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交通部觀光署 組織架構互動圖表整合平台</title>
+    <!-- amCharts 5 Resources -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/hierarchy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/ResponsiveMax.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Adaptive.js"></script>
+    <style>
+        :root {
+            --primary-color: #0d9488;
+            --primary-dark: #0f766e;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 24px;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #e6fffa 100%);
+            color: #134e4a;
+            padding: 32px 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #99f6e4;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin: 0 0 8px 0;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #0f766e;
+        }
+
+        .header p {
+            margin: 0;
+            font-size: 15px;
+            color: #0d9488;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .chart-btn {
+            background-color: #ffffff;
+            color: #0f766e;
+            border: 1px solid #99f6e4;
+            padding: 10px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .chart-btn:hover {
+            background-color: #f0fdf4;
+            border-color: #5eead4;
+            transform: translateY(-2px);
+        }
+
+        .chart-btn.active {
+            background-color: #0d9488;
+            color: #ffffff;
+            border-color: #0d9488;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+            align-items: start;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .chart-container-flex {
+            min-width: 0;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 850px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: none;
+        }
+
+        .chart-wrapper.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chartdiv {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar-info {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            max-height: 850px;
+            overflow-y: auto;
+            position: sticky;
+            top: 24px;
+        }
+
+        .sidebar-info h3 {
+            font-size: 18px;
+            color: var(--primary-dark);
+            margin-top: 0;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-info h4 {
+            font-size: 14px;
+            color: #374151;
+            margin: 18px 0 8px 0;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-group {
+            background-color: #f0fdf4;
+            color: #15803d;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .sidebar-info ul {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .sidebar-info li {
+            margin-bottom: 6px;
+        }
+
+        .scenic-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4px;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .scenic-list li {
+            background-color: #f9fafb;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #f3f4f6;
+            font-size: 12.5px;
+            transition: background 0.2s;
+        }
+
+        .scenic-list li:hover {
+            background-color: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+        @media (max-width: 1100px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar-info {
+                position: static;
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>交通部觀光署 組織架構互動平台</h1>
+        <p>探索觀光署署本部 11 個內部單位與 13 個國家風景區管理處之多維度視覺化呈現</p>
+        
+        <div class="btn-container">
+            <button class="chart-btn active" onclick="switchChart(0)">📊 力向階層圖 (標準)</button>
+            <button class="chart-btn" onclick="switchChart(1)">🎯 旭日圖 (Sunburst)</button>
+            <button class="chart-btn" onclick="switchChart(2)">⚡ 流向動畫階層圖</button>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <!-- Chart Display Area -->
+        <div class="chart-container-flex">
+            <!-- Chart 1: Force-Directed Tree -->
+            <div id="wrapper-0" class="chart-wrapper active">
+                <div id="chartdiv-0" class="chartdiv"></div>
+            </div>
+
+            <!-- Chart 2: Sunburst Chart -->
+            <div id="wrapper-1" class="chart-wrapper">
+                <div id="chartdiv-1" class="chartdiv"></div>
+            </div>
+
+            <!-- Chart 3: Force-Directed Tree with Animated Bullets -->
+            <div id="wrapper-2" class="chart-wrapper">
+                <div id="chartdiv-2" class="chartdiv"></div>
+            </div>
+        </div>
+
+        <!-- Sidebar Organization Info -->
+        <div class="sidebar-info">
+            <h3>📋 組織架構摘要</h3>
+            
+            <h4>🏢 署本部內部單位 <span class="badge-group">11個</span></h4>
+            
+            <p style="font-weight:600; margin:10px 0 4px 0; color:var(--primary-color); font-size:13px;">【6個業務組】</p>
+            <ul>
+                <li><strong>企劃組</strong>：政策規劃與法規研擬</li>
+                <li><strong>國際組</strong>：國際觀光推廣與行銷</li>
+                <li><strong>旅行業組</strong>：旅行業管理與輔導</li>
+                <li><strong>旅宿組</strong>：旅館與民宿管理評鑑</li>
+                <li><strong>景區發展組</strong>：國家風景區建設永續</li>
+                <li><strong>旅遊推廣組</strong>：國旅推動與主題行銷</li>
+            </ul>
+
+            <p style="font-weight:600; margin:14px 0 4px 0; color:var(--primary-color); font-size:13px;">【5個支援與行政室】</p>
+            <ul>
+                <li><strong>秘書室</strong>：文書總務與公關業務</li>
+                <li><strong>人事室</strong>：人事管理事項</li>
+                <li><strong>主計室</strong>：歲計、會計與統計</li>
+                <li><strong>政風室</strong>：政風業務</li>
+                <li><strong>資訊室</strong>：資訊系統與資安維護</li>
+            </ul>
+
+            <h4 style="margin-top:18px;">🏞️ 國家風景區管理處 <span class="badge-group">13處</span></h4>
+            <ul class="scenic-list">
+                <li>東北角及宜蘭海岸</li>
+                <li>北海岸及觀音山</li>
+                <li>參山 (獅頭山、梨山、八卦山)</li>
+                <li>日月潭</li>
+                <li>阿里山</li>
+                <li>雲嘉南濱海</li>
+                <li>西拉雅</li>
+                <li>茂林</li>
+                <li>大鵬灣</li>
+                <li>東部海岸</li>
+                <li>花東縱谷</li>
+                <li>澎湖</li>
+                <li>馬祖</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Common organization data
+        const orgData = {
+            name: "交通部觀光署",
+            children: [{
+                name: "組織類別：業務組 (6組)",
+                children: [
+                    { name: "企劃組", value: 1 },
+                    { name: "國際組", value: 1 },
+                    { name: "旅行業組", value: 1 },
+                    { name: "旅宿組", value: 1 },
+                    { name: "景區發展組", value: 1 },
+                    { name: "旅遊推廣組", value: 1 }
+                ]
+            }, {
+                name: "組織類別：支援與行政室 (5室)",
+                children: [
+                    { name: "秘書室", value: 1 },
+                    { name: "人事室", value: 1 },
+                    { name: "主計室", value: 1 },
+                    { name: "政風室", value: 1 },
+                    { name: "資訊室", value: 1 }
+                ]
+            }, {
+                name: "組織類別：國家風景區管理處 (13處)",
+                children: [
+                    { name: "東北角及宜蘭海岸", value: 1 },
+                    { name: "北海岸及觀音山", value: 1 },
+                    { name: "參山", value: 1 },
+                    { name: "日月潭", value: 1 },
+                    { name: "阿里山", value: 1 },
+                    { name: "雲嘉南濱海", value: 1 },
+                    { name: "西拉雅", value: 1 },
+                    { name: "茂林", value: 1 },
+                    { name: "大鵬灣", value: 1 },
+                    { name: "東部海岸", value: 1 },
+                    { name: "花東縱谷", value: 1 },
+                    { name: "澎湖", value: 1 },
+                    { name: "馬祖", value: 1 }
+                ]
+            }]
+        };
+
+        let chartsInitialized = [false, false, false];
+
+        function initChart(index) {
+            if (chartsInitialized[index]) return;
+
+            if (index === 0) {
+                // Chart 1: Force-Directed Tree
+                var root = am5.Root.new("chartdiv-0");
+                root.setThemes([
+                    am5themes_Animated.new(root),
+                    am5themes_Adaptive.new(root, { baseColor: 0x4150a0, baseColor2: 0xf0825a, count: 7, mapShade: true, keepContrast: true }),
+                    am5themes_ResponsiveMax.new(root)
+                ]);
+
+                var chart = root.container.children.push(am5.SerialChartContainer.new(root, {
+                    width: am5.percent(100),
+                    height: am5.percent(100),
+                    layout: root.verticalLayout
+                }));
+
+                var series = chart.series.push(am5hierarchy.ForceDirected.new(root, {
+                    singleBranchOnly: false,
+                    downDepth: 1,
+                    initialDepth: 2,
+                    valueField: "value",
+                    categoryField: "name",
+                    childDataField: "children",
+                    centerStrength: 0.5,
+                    minRadius: am5.percent(3.5),
+                    maxRadius: am5.percent(10)
+                }));
+
+                series.circles.template.setAll({
+                    radius: 45,
+                    shadowColor: am5.color(0x000000),
+                    shadowOpacity: 0.25,
+                    shadowBlur: 8,
+                    shadowOffsetX: 2,
+                    shadowOffsetY: 3
+                });
+
+                series.labels.template.setAll({
+                    oversizedBehavior: "wrap",
+                    textAlign: "center",
+                    maxWidth: 80,
+                    fontSize: 12
+                });
+
+                series.nodes.template.set("tooltipText", "{category}");
+                series.data.setAll([orgData]);
+                series.set("selectedDataItem", series.dataItems[0]);
+                series.appear(1000, 100);
+
+            } else if (index === 1) {
+                // Chart 2: Sunburst Chart
+                var root = am5.Root.new("chartdiv-1");
+                root.setThemes([
+                    am5themes_Animated.new(root),
+                    am5themes_Adaptive.new(root, { baseColor: 0x4150a0, baseColor2: 0xf0825a, count: 7, mapShade: true, keepContrast: true }),
+                    am5themes_ResponsiveMax.new(root)
+                ]);
+
+                var chart = root.container.children.push(am5.SerialChartContainer.new(root, {
+                    width: am5.percent(100),
+                    height: am5.percent(100),
+                    layout: root.verticalLayout
+                }));
+
+                var series = chart.series.push(am5hierarchy.Sunburst.new(root, {
+                    singleBranchOnly: true,
+                    downDepth: 10,
+                    initialDepth: 10,
+                    valueField: "value",
+                    categoryField: "name",
+                    childDataField: "children"
+                }));
+
+                series.nodes.template.set("tooltipText", "{category}");
+                series.data.setAll([orgData]);
+                series.set("selectedDataItem", series.dataItems[0]);
+                series.appear(1000, 100);
+
+            } else if (index === 2) {
+                // Chart 3: Force-Directed Tree with Animated Bullets
+                var root = am5.Root.new("chartdiv-2");
+                root.setThemes([
+                    am5themes_Animated.new(root),
+                    am5themes_Adaptive.new(root, { baseColor: 0x4150a0, baseColor2: 0xf0825a, count: 5, mapShade: true, keepContrast: true }),
+                    am5themes_ResponsiveMax.new(root)
+                ]);
+
+                var chart = root.container.children.push(
+                    am5.SerialChartContainer.new(root, {
+                        width: am5.p100,
+                        height: am5.p100
+                    })
+                );
+
+                chart.zoomableContainer.setAll({
+                    wheelable: true,
+                    pinchZoom: true
+                });
+
+                chart.set("zoomTools", am5.ZoomTools.new(root, {}));
+
+                var series = chart.series.push(am5hierarchy.ForceDirected.new(root, {
+                    singleBranchOnly: false,
+                    downDepth: 1,
+                    initialDepth: 10,
+                    nodePadding: 20,
+                    minRadius: am5.percent(3),
+                    maxRadius: am5.percent(10),
+                    valueField: "value",
+                    categoryField: "name",
+                    childDataField: "children"
+                }));
+
+                series.links.template.set("strokeOpacity", 1);
+
+                series.linkBullets.push(function(root, source, target) {
+                    const bullet = am5.Bullet.new(root, {
+                        locationX: 0.5,
+                        autoRotate: true,
+                        sprite: am5.Graphics.new(root, {
+                            fill: source.get("fill"),
+                            centerY: am5.percent(50),
+                            centerX: am5.percent(50),
+                            draw: function(display) {
+                                display.moveTo(0, -6);
+                                display.lineTo(16, 0);
+                                display.lineTo(0, 6);
+                                display.lineTo(3, 0);
+                                display.lineTo(0, -6);
+                            }
+                        })
+                    });
+
+                    bullet.animate({
+                        key: "locationX",
+                        from: -0.1,
+                        to: 1.1,
+                        duration: Math.random() * 500 + 1000,
+                        loops: Infinity,
+                        easing: am5.ease.quad
+                    });
+
+                    return bullet;
+                });
+
+                series.labels.template.set("minScale", 0);
+
+                series.circles.template.setAll({
+                    radius: 45,
+                    shadowColor: am5.color(0x000000),
+                    shadowOpacity: 0.25,
+                    shadowBlur: 8,
+                    shadowOffsetX: 2,
+                    shadowOffsetY: 3
+                });
+
+                series.labels.template.setAll({
+                    oversizedBehavior: "wrap",
+                    textAlign: "center",
+                    maxWidth: 80,
+                    fontSize: 12
+                });
+
+                series.nodes.template.set("tooltipText", "{category}");
+                series.data.setAll([orgData]);
+                series.set("selectedDataItem", series.dataItems[0]);
+                series.appear(1000, 100);
+            }
+
+            chartsInitialized[index] = true;
+        }
+
+        function switchChart(index) {
+            const buttons = document.querySelectorAll('.chart-btn');
+            buttons.forEach((btn, i) => {
+                if (i === index) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            const wrappers = document.querySelectorAll('.chart-wrapper');
+            wrappers.forEach((wrapper, i) => {
+                if (i === index) {
+                    wrapper.classList.add('active');
+                } else {
+                    wrapper.classList.remove('active');
+                }
+            });
+
+            initChart(index);
+            
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 50);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart(0);
+        });
+    </script>
+</body>
+</html>
